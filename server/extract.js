@@ -1,4 +1,3 @@
-
 const GROQ_URL = "https://api.groq.com/openai/v1/chat/completions";
 const MODEL = process.env.GROQ_MODEL || "openai/gpt-oss-20b";
 const API_KEY = process.env.GROQ_API_KEY;
@@ -49,13 +48,16 @@ async function callGROQ(policyText) {
         ],
         response_format: { type: "json_object" },
         temperature: 0,
-        max_tokens: 2048,
+        max_completion_tokens: 8192,
+        reasoning_effort: "low",
       }),
     });
 
     if (!response.ok) {
       const errText = await response.text().catch(() => "");
-      throw new Error(`Groq request failed: ${response.status} ${response.statusText} ${errText}`);
+      throw new Error(
+        `Groq request failed: ${response.status} ${response.statusText} ${errText}`,
+      );
     }
 
     const data = await response.json();
@@ -103,9 +105,7 @@ function validateAndBuildItems(rawJson, originalText) {
     const idx = quote ? originalText.indexOf(quote) : -1;
 
     item.sourceSpan =
-      idx >= 0
-        ? { start: idx, end: idx + quote.length, quote }
-        : null; // quote missing OR not actually found in the source text
+      idx >= 0 ? { start: idx, end: idx + quote.length, quote } : null; // quote missing OR not actually found in the source text
 
     return item;
   });
